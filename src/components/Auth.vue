@@ -2,14 +2,13 @@
     <div class="auth-container">
         <div class="auth-form">
             <div class="auth-inputs">
-                <input type="password">
+                <input v-model="passwordInput" type="password">
                 <p class="auth-labels">Password</p>
-                <input type="e-mail">
+                <input v-model="mailInput" type="e-mail">
                 <p class="auth-labels">E-mail</p>
-
             </div>
             <div class="sign">
-                <button>Login</button>
+                <button @click="loggedSucces()">Login</button>
             </div>
         </div>
         <div class="hotel-helper">
@@ -34,6 +33,34 @@
 
 export default {
 
+    data() {
+        return {
+            mail: "denedene@outlook.com",
+            password: "12345",
+            mailInput: "",
+            passwordInput: "",
+            loggedStatus: false,
+        }
+    },
+    mounted() {
+        
+    },
+    methods: {
+        loggedSucces() {
+            if (this.mailInput === this.mail && this.passwordInput === this.password){
+                this.loggedStatus = true
+                this.$emit("loginControl", this.loggedStatus)
+                console.log(this.loggedStatus);
+                localStorage.setItem("logStatus", this.loggedStatus)
+            }
+            else{
+                this.loggedStatus = false
+                this.$emit("loginControl", this.loggedStatus)
+                localStorage.setItem("logStatus", this.loggedStatus)
+                console.log(this.loggedStatus);
+            }
+        }
+    }
 }
 </script>
 
@@ -119,11 +146,13 @@ body {
 .sign button:hover {
     background-color: #91d7c0;
 }
-.hotel-helper svg{
+
+.hotel-helper svg {
     filter: drop-shadow(0px 0px 8px);
     padding: 0 3px;
 }
-.hotel-helper h1{
+
+.hotel-helper h1 {
     color: #e7f4ff;
     text-shadow: 0 0 10px #FFFFFF;
 }

@@ -1,16 +1,35 @@
 <template>
   <div id="app">
-  <Auth/>
+  <Auth v-if="isLogged == 'false' || isLogged == null || isLogged == false" @loginControl="logControl($event)"/>
+  <Mainpage v-if="isLogged === 'true' || isLogged === true"/>
   </div>
 </template>
 
 <script>
 import Auth from './components/Auth.vue'
+import Mainpage from './components/Mainpage.vue'
 
 export default {
   name: 'App',
   components: {
-    Auth
+    Auth,
+    Mainpage
+  },
+  data(){
+    return {
+      isLogged: false
+    }
+  },
+  mounted(){
+    
+    this.isLogged = localStorage.getItem("logStatus")
+    console.log(this.isLogged);
+  },
+  methods:{
+    logControl(event){
+      this.isLogged = event
+      console.log(this.isLogged);
+    }
   }
 }
 </script>
