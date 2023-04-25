@@ -25,7 +25,7 @@
                 <div style="margin-right: 10px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" fill="currentColor"
                         class="bi bi-person-circle" viewBox="0 0 16 16"
-                        style="height: 55px; width: 55px; border-radius: 50%; background: rgb(141, 141, 141); color: rgb(233, 233, 233); box-shadow: rgba(0, 0, 0, 0.24) 0px 1px 14px; display: flex; justify-content: center; align-items: center; font-size: 55px;">
+                        style="height: 55px; width: 55px; border-radius: 50%; background: rgb(141, 141, 141); color: rgb(233, 233, 233); box-shadow: rgb(255 255 255 / 24%) 0px 1px 14px; display: flex; justify-content: center; align-items: center; font-size: 55px;">
                     <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
                     <path fill-rule="evenodd"
                         d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
@@ -36,21 +36,30 @@
 
         <div class="content-container">
             <div class="sidebar">
-                <p class="sidebar-buttons">Rezervasyon</p>
-                <p class="sidebar-buttons">Oteller</p>
-                <p class="sidebar-buttons">Harita</p>
+                <p class="sidebar-buttons" @click="() => select = 'booking'">Rezervasyon</p>
+                <p class="sidebar-buttons">Odalar</p>
+                <p class="sidebar-buttons" @click="select = 'map'">Harita</p>
             </div>
-            <div class="content"></div>
+            <div class="content">
+                <Booking v-if="select === 'booking'"/>
+                <Map v-if="select === 'map'"/>
+            </div>
         </div>
 
     </div>
 </template>
 
 <script>
+import Booking from "./Booking.vue"
+import Map from "./Map.vue"
 export default {
+    components:{
+        Booking,
+        Map
+    },
     data() {
         return {
-
+            select: "booking"
         }
     }
 }
@@ -92,6 +101,7 @@ export default {
     display: flex;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 
 .sidebar-buttons{
