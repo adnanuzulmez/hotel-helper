@@ -98,7 +98,6 @@ export default {
             { position: { lat: 36.557157, lng: 31.965767 }, id: 1, popup: { hotelName: "Hotel Antalya", freeRoomCount: 160, busyRoomCount: 134, hotelStatus: "Sessiz" } },
             { position: { lat: 36.766682, lng: 31.389935 }, id: 2, popup: { hotelName: "Hotel Konyalı", freeRoomCount: 123, busyRoomCount: 163, hotelStatus: "Sessiz" } },
             { position: { lat: 36.820561, lng: 31.283972 }, id: 3, popup: { hotelName: "Hotel Meram", freeRoomCount: 198, busyRoomCount: 127, hotelStatus: "Normal" } },
-            { position: { lat: 36.598774, lng: 30.564585 }, id: 4, popup: { hotelName: "Hotel Side", freeRoomCount: 132, busyRoomCount: 129, hotelStatus: "Kalabalık" } },
             { position: { lat: 36.674043, lng: 30.555277 }, id: 5, popup: { hotelName: "Hotel Kemer", freeRoomCount: 137, busyRoomCount: 142, hotelStatus: "Kalabalık" } },
 
         ]
