@@ -54,6 +54,14 @@
             <div class="booking-template">
                 <div class="booking-datas"  v-for="users, index in userDatas" :key="index">
                     <div class="room-window" :id="'room'+index" v-if="roomStatus == 'room'+index">
+                    <select  id="hotel-select" @change="hotelSelect($event)"> 
+                        <option :value="hotel._id" v-for="hotel, index in hotelDatas" :key="index" >
+                            {{ hotel.name }}
+                        </option>
+                    </select>
+                    <div class="able-rooms">
+                        <span> Müsait Odalar</span>
+                    </div>
                         <div @click="closeRoomWindow('room'+index)" class="delete" style="position: absolute;top: 10px;right: 0px;">
                             <svg style="margin-right: 8px; color: #ff8181; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
                                 class="bi bi-x-circle-fill" viewBox="0 0 16 16">
@@ -62,10 +70,12 @@
                             </svg>
                         </div>
                         <div class="room-container">
-                            <div class="rooms" v-for="rooms, index in dummyRooms" :key="index" :value="index">
-                                
+                            <div class="rooms" v-for="rooms, index in roomDatas" :key="index" :value="rooms.roomNo" :class="[rooms.status === true ? 'room-full' : '']" @click="getRoomValue(rooms._id, rooms.status)">
+                                {{ rooms.roomNo }}
                             </div>
                         </div>
+                        <date-picker v-model="dateAll" range valueType="format" :inline="true" ></date-picker>
+                        <span class="reservation-text" @click="reservation()">REZERVASYON</span>
                     </div>
                     <div class="header-title">
                         {{ users._id.substring(users._id.length - 3, users._id.length) }}
@@ -86,7 +96,7 @@
                     <div class="header-title" style="justify-content: space-between;">
                         
                         <div class="buttons" style="margin-right: 10px; display: flex;">
-                            <div class="ok" @click="roomStatusFunc(index)">
+                            <div class="ok" @click="roomStatusFunc(index, users._id)">
                                 <svg style="margin-right: 8px; color: #4cc923; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
                                     class="bi bi-check-square-fill" viewBox="0 0 16 16">
                                     <path
@@ -113,33 +123,81 @@
 <script>
 
 import axios from "axios"
+import DatePicker from 'vue2-datepicker';
+import 'vue2-datepicker/index.css';
+import { Toast } from "toaster-js";
+import "toaster-js/default.css"; 
 export default {
+    components:{
+        DatePicker,
+        
+    },
     data(){
         return{
             userDatas: [],
-            dummyRooms: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25],
             roomStatus: false,
+            hotelDatas: [],
+            dateAll: "",
+            beginDate: "",
+            endDate: "",
+            selectedHotel: "648f405590ee9ff666f50c6d",
+            selectedCustomer: "",
+            selectedRoom: "",
+            roomDatas: [],
+            roomIsAble: false,
         }
     },
     mounted(){
 
         this.getUser()
-
+        this.getHotels()
+        this.getRooms()
+    },
+    watch:{
+        selectedHotel(){
+            
+            this.getRooms()
+        },
+        dateAll(){
+            console.log(this.dateAll[0]);
+            this.beginDate = this.dateAll[0]
+            this.endDate = this.dateAll[1]
+        }
     },
     methods:{
         getUser(){
-            axios.get('http://192.168.195.165:3000/users')
+            axios.get('http://192.168.1.109:3000/users')
             .then((response) => {
                 this.userDatas = response.data
                 
             })
         },
-        roomStatusFunc(index){
-            this.roomStatus = 'room'+index
-            
-            console.log(this.roomStatus);
-            
+        getHotels(){
+            axios.get('http://192.168.1.109:3000/hotels')
+            .then((response) => {
+                this.hotelDatas = response.data
+                
+            })
         },
+        roomStatusFunc(index, id){
+            this.roomStatus = 'room'+index
+            this.selectedCustomer = id
+            console.log(this.selectedCustomer);
+        },
+
+        hotelSelect(event){
+            this.selectedHotel = event.target.value
+        },
+        getRooms(){
+            const params = {
+                id: this.selectedHotel
+            }
+            axios.post('http://192.168.1.109:3000/rooms', {params})
+            .then((response) => {
+                this.roomDatas = response.data
+            })
+        },
+
         closeRoomWindow(index){
             console.log(index);
             console.log(document.getElementById(index));
@@ -147,12 +205,41 @@ export default {
                 console.log(index);
                 this.roomStatus = false
             }
+        },
+
+        reservation(){
+            const params = {
+                name: "12",
+                user: this.selectedCustomer,
+                room: this.selectedRoom,
+                hotel: this.selectedHotel,
+                checkInDate: this.beginDate,
+                checkOutDate: this.endDate,
+                totalAmount: "12",
+            }
+            if(this.roomIsAble != true){
+                axios.post('http://192.168.1.109:3000/reservations', {params})
+                .then((response) => {
+                this.getRooms()
+                new Toast("Rezervasyon Basarili", Toast.TYPE_DONE, Toast.TIME_LONG);
+            })
+            
+            }
+            else{
+                new Toast("Dolu Bir Odaya Rezervasyon Yapilamaz", Toast.TYPE_ERROR, Toast.TIME_LONG);
+            }
+        },
+        getRoomValue(roomNo, roomStatus){
+            this.selectedRoom = roomNo
+            this.roomIsAble = roomStatus
+            console.log(this.selectedRoom);
         }
     }
 }
 </script>
 
 <style>
+@import "toastr";
 .booking {
     display: flex;
     width: 100%;
@@ -160,11 +247,60 @@ export default {
     flex-direction: column;
 }
 
+.toast{
+    background-color: transparent !important;
+    transition: 1s;
+}
+
+.able-rooms{
+    position: absolute;
+    left: 85px;
+    top: 60px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #838383;
+}
+
+#hotel-select{
+    position: absolute;
+    top: 25px;
+    left: 81px;
+    border-radius: 6px;
+    outline: none;
+    border: 1px solid #cdcdcd;
+    font-size: 14px;
+}
+
+.room-full{
+    background-color: #ff7171 !important;
+}
+
+.reservation-text{
+    position: absolute;
+    left: 52px;
+    top: 82%;
+    font-weight: 800;
+    font-size: 20px;
+    color: #276faf;
+    filter: drop-shadow(0px 0px 23px #276faf);
+    border: 1px solid #8caecd;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.reservation-text:hover{
+    color: #dfecff;
+    background-color: #6599c7;
+    
+}
+
 .room-window{
     position: absolute;
     display: flex;
-    width: 200px;
-    height: 200px;
+    width: 785px;
+    height: 315px;
     justify-content: center;
     align-items: center;
     right: 35px;
@@ -174,24 +310,38 @@ export default {
     
 }
 
+.mx-datepicker-inline {
+    width: auto;
+    margin-top: 30px;
+    margin-right: 15px;
+}
+
 .room-container{
     display: flex;
     flex-wrap: wrap;
-    flex-basis: calc(100% / 2);
-    align-content: center;
+    flex-basis: calc(100% / 1.0);
+    align-content: end;
     justify-content: center;
-    align-items: center;
+    align-items: end;
+    margin-bottom: 35px;
     width: 200px;
     height: 200px;
+    
 }
 
 .rooms{
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
+    width: 42px;
+    height: 20px;
+    border-radius: 2px;
     margin: 0px;
-    background-color: green;
+    background-color: #4fa14f;
     margin: 4px;
+    color: white;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer ;
 }
 
 .header {
