@@ -1,5 +1,13 @@
 <template>
     <div class="booking">
+    <h3 class="titles">
+        <svg style="margin-right: 10px;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person"
+                    viewBox="0 0 16 16">
+                    <path
+                        d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z" />
+                </svg>
+                Kayıt
+    </h3>
         <div class="header">
             <div class="header-title"><i class="bi bi-person"></i>
                 Id
@@ -40,14 +48,7 @@
                 <div></div>Doğum Tarihi
             </div>
              <div class="header-title">
-               <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-5-square"
-                    viewBox="0 0 16 16">
-                    <path
-                        d="M7.994 12.158c-1.57 0-2.654-.902-2.719-2.115h1.237c.14.72.832 1.031 1.529 1.031.791 0 1.57-.597 1.57-1.681 0-.967-.732-1.57-1.582-1.57-.767 0-1.242.45-1.435.808H5.445L5.791 4h4.705v1.103H6.875l-.193 2.343h.064c.17-.258.715-.68 1.611-.68 1.383 0 2.561.944 2.561 2.585 0 1.687-1.184 2.806-2.924 2.806Z" />
-                    <path
-                        d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2Zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2Z" />
-                </svg>
-                <div></div>Oda No-->
+              
             </div> 
         </div>
         <div class="booking-content">
@@ -140,7 +141,7 @@ export default {
             dateAll: "",
             beginDate: "",
             endDate: "",
-            selectedHotel: "648f405590ee9ff666f50c6d",
+            selectedHotel: "648f404290ee9ff666f50c6b",
             selectedCustomer: "",
             selectedRoom: "",
             roomDatas: [],
@@ -216,6 +217,9 @@ export default {
                 checkInDate: this.beginDate,
                 checkOutDate: this.endDate,
                 totalAmount: "12",
+            }
+            if (this.selectedRoom == "" || this.selectedHotel == "" || this.beginDate == "" || this.endDate == "") {
+                new Toast("Alanlar Bos Olamaz", Toast.TYPE_ERROR, Toast.TIME_LONG);
             }
             if(this.roomIsAble != true){
                 axios.post('http://192.168.1.109:3000/reservations', {params})
@@ -369,9 +373,10 @@ export default {
 .header-title {
     padding: 0 15px;
     color: #386a95;
-    font-size: 13px;
+    font-size: 15px;
     display: flex;
     width: 130px;
+    align-items: center;
 }
 
 .header-title svg {
