@@ -16,7 +16,7 @@
                     HOTEL HELPER
                 </h1>
             </div>
-            <div id="profile-photo" @mouseleave="showSettings()">
+            <div id="profile-photo">
                 <div style="margin-right: 12px; margin-left: 20px; margin-top: 3px;"><span class="text-truncate"
                         style="font-style: normal; font-weight: bold; font-size: 14px; line-height: 18px; text-align: right; display: block; color: aliceblue;">
                         Adnan Üzülmez
@@ -53,13 +53,14 @@
 
         <div class="content-container">
             <div class="sidebar">
-                <p class="sidebar-buttons" @click="() => select = 'booking'">Rezervasyon</p>
-                <p class="sidebar-buttons">Odalar</p>
+                <p class="sidebar-buttons" @click="() => select = 'booking'">Kayit</p>
+                <p class="sidebar-buttons" @click="() => select = 'reservation'">Rezervasyon</p>
                 <p class="sidebar-buttons" @click="select = 'map'">Harita</p>
             </div>
             <div class="content">
                 <Booking v-if="select === 'booking'" />
                 <Map v-if="select === 'map'" />
+                <Reservation v-if="select === 'reservation'" />
             </div>
         </div>
 
@@ -69,10 +70,12 @@
 <script>
 import Booking from "./Booking.vue"
 import Map from "./Map.vue"
+import Reservation from "./Reservation.vue"
 export default {
     components: {
         Booking,
-        Map
+        Map,
+        Reservation
     },
     data() {
         return {
