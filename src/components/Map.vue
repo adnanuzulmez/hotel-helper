@@ -44,36 +44,30 @@
           :lat-lng="item.position"
           @click="() => (center = [item.position.lat, item.position.lng])"
         >
-          <l-popup>
+          <l-popup style="width: 770px;" > 
             <div class="magnitude">
-              <h2 style="font-size: 20px; color: #446c8f ;">
+              <h2 style="font-size: 20px; color: #446c8f ; display: flex; justify-content: center;">
                 {{ item.popup.hotelName }}
               </h2>
             </div>
-            <!-- <div class="room-window" :id="'room'+index" v-if="roomStatus == 'room'+index">
-                    <select  id="hotel-select" @change="hotelSelect($event)"> 
-                        <option :value="hotel._id" v-for="hotel, index in hotelDatas" :key="index" >
-                            {{ hotel.name }}
+            <div class="room-window-map">
+                    <select  id="hotel-select" style="top: 10px; left: 14px;" @change="userSelect($event)"> 
+                        <option :value="user._id" v-for="user, index in userDatas" :key="index" >
+                            {{ user.name }} {{ user.surname }}
                         </option>
                     </select>
                     <div class="able-rooms">
                         <span> Müsait Odalar</span>
                     </div>
-                        <div @click="closeRoomWindow('room'+index)" class="delete" style="position: absolute;top: 10px;right: 0px;">
-                            <svg style="margin-right: 8px; color: #ff8181; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                                class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                                <path
-                                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z" />
-                            </svg>
-                        </div>
+                        
                         <div class="room-container">
-                            <div class="rooms" v-for="rooms, index in roomDatas" :key="index" :value="rooms.roomNo" :class="[rooms.status === true ? 'room-full' : '']" @click="getRoomValue(rooms._id, rooms.status)">
+                            <div class="rooms" :tabindex="index" v-for="rooms, index in roomDatas[index]" :key="index" :value="rooms.roomNo" :class="[rooms.status === true ? 'room-full' : '']" @click="getRoomValue(rooms._id, rooms.status, rooms.hotel._id)">
                                 {{ rooms.roomNo }}
                             </div>
                         </div>
                         <date-picker v-model="dateAll" range valueType="format" :inline="true" ></date-picker>
                         <span class="reservation-text" @click="reservation()">REZERVASYON</span>
-                    </div> -->
+                    </div>
           </l-popup>
           <l-icon>
             <div :id="item.id">
@@ -107,6 +101,10 @@
 import { LMap, LTileLayer, LMarker, LIconDefault, LPopup, LIcon } from "vue2-leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
+import DatePicker from 'vue2-datepicker';
+import 'vue2-datepicker/index.css';
+import { Toast } from "toaster-js";
+import "toaster-js/default.css"; 
 let cityId;
 export default {
   components: {
@@ -116,6 +114,7 @@ export default {
     LIconDefault,
     LPopup,
     LIcon,
+    DatePicker
   },
   data() {
     return {
@@ -135,31 +134,48 @@ export default {
       roomDatas: [],
       hotelName: "",
       ableRooms: [],
+      userDatas: [],
+      dateAll: "",
+      selectedCustomer: "",
+      selectedRoom: "",
+      selectedHotel: "",
+      beginDate: "",
+      endDate: "",
+      roomIsAble: "",
     };
   },
   mounted() {
     this.getHotels();
     this.getRooms();
-
+    this.getUser()
     let leafletZoom = document.querySelector(".leaflet-left");
     leafletZoom.remove();
   },
 
-  watch: {},
+  watch: {
+    dateAll(){
+            console.log(this.dateAll[0]);
+            this.beginDate = this.dateAll[0]
+            this.endDate = this.dateAll[1]
+        }
+  },
   methods: {
     getUser() {
       axios.get("http://192.168.1.109:3000/users").then((response) => {
         this.userDatas = response.data;
       });
     },
+
+    
     getHotels() {
       axios.get("http://192.168.1.109:3000/hotels").then((response) => {
         this.hotelDatas = response.data;
       });
     },
 
-    hotelSelect(event) {
-      this.selectedHotel = event.target.value;
+    userSelect(event) {
+      this.selectedCustomer = event.target.value;
+      console.log(this.selectedCustomer);
     },
     getRooms() {
       axios.get("http://192.168.1.109:3000/rooms").then((response) => {
@@ -222,6 +238,40 @@ export default {
         console.log(this.ableRooms);
       });
     },
+
+    reservation(){
+            const params = {
+                name: "12",
+                user: this.selectedCustomer,
+                room: this.selectedRoom,
+                hotel: this.selectedHotel,
+                checkInDate: this.beginDate,
+                checkOutDate: this.endDate,
+                totalAmount: "12",
+            }
+            if (this.selectedRoom == "" || this.selectedHotel == "" || this.beginDate == "" || this.endDate == "") {
+                new Toast("Alanlar Bos Olamaz", Toast.TYPE_ERROR, Toast.TIME_LONG);
+            }
+            if(this.roomIsAble != true){
+                axios.post('http://192.168.1.109:3000/reservations', {params})
+                .then((response) => {
+                this.getRooms()
+                new Toast("Rezervasyon Basarili", Toast.TYPE_DONE, Toast.TIME_LONG);
+            })
+            
+            }
+            else{
+                new Toast("Dolu Bir Odaya Rezervasyon Yapilamaz", Toast.TYPE_ERROR, Toast.TIME_LONG);
+            }
+        },
+        getRoomValue(roomNo, roomStatus, index){
+            this.selectedRoom = roomNo
+            this.roomIsAble = roomStatus
+            this.selectedHotel = index
+            console.log(this.selectedRoom + `===` + this.selectedHotel);
+            
+        },
+
     setCenterByLocation(id) {
       cityId = this.position.filter((item) => item.id === id);
       setTimeout(async () => {
@@ -240,7 +290,7 @@ export default {
 };
 </script>
 
-<style>
+<style >
 .app {
   height: 100%;
   width: 100%;
@@ -268,6 +318,22 @@ export default {
   transition: 1.5s;
 }
 
+.room-window-map{
+    position: relative;
+    display: flex;
+    width: 785px;
+    height: 315px;
+    justify-content: center;
+    align-items: center;
+    right: 9px;
+    box-shadow: rgb(0 124 255 / 31%) 0px 0px 12px 0px;
+    background-color: #e7edff;
+    border-radius: 6px;
+    top: 4px;
+}
+.leaflet-popup{
+    width: 810px !important;
+}
 * {
   scrollbar-width: 5px !important;
   scrollbar-color: #5f5f5f #3c3d3f !important;
@@ -291,74 +357,6 @@ export default {
   border: 2px solid #3c3d3f00 !important;
 }
 
-.magnitude {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.infos h5 {
-  padding-bottom: 5px;
-}
-
-.mag-1 {
-  width: 8px;
-  height: 8px;
-  background-color: rgb(255, 229, 114);
-  border-radius: 50%;
-}
-
-.mag-2 {
-  width: 10px;
-  height: 10px;
-  background-color: rgb(255, 160, 72);
-  border-radius: 50%;
-}
-
-.mag-3 {
-  width: 18px;
-  height: 18px;
-  background-color: rgb(255, 108, 23);
-  border-radius: 50%;
-}
-
-.mag-4,
-.mag-5 {
-  width: 24px;
-  height: 24px;
-  background-color: rgb(253, 84, 84);
-  border-radius: 50%;
-}
-
-.mag-6,
-.mag-7 {
-  width: 32px;
-  height: 32px;
-  background-color: rgb(201, 0, 0);
-  border-radius: 50%;
-}
-
-.magSize {
-  font-size: 14px;
-}
-
-.lastLocationData {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.searchBar {
-  margin: 32px 30px 23px 25px;
-}
-
-.sidebarSwitchStatus {
-  margin-left: 20px;
-}
-
-.sidebarHidden {
-  right: 500px !important;
-  transition: 3s;
-}
 
 .leftSidebar {
   transition: 1s;
@@ -366,47 +364,9 @@ export default {
   position: absolute;
 }
 
-.sidebarSwitch {
-  position: absolute;
-  color: #ffffff;
-  margin-left: 10px;
-  z-index: 9999999;
-  padding: 8px;
-  border-radius: 50%;
-  background: #ff976a;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: rgb(255 207 166 / 55%) 0px 0px 7px 6px;
-  cursor: pointer;
-  height: 38px;
-  margin-top: 10px;
-}
 
-.sidebarSwitch svg {
-  width: 22px;
-  height: 22px;
-}
 
-.searchBar input {
-  width: 100%;
-  background-color: transparent;
-  outline: none;
-  border: none;
-  color: #c3c3c3;
-  font-size: 16px;
-  border-bottom: 1px solid #ffffff00;
-  transition: 0.2s;
-}
 
-.searchBar input:focus {
-  border-bottom: 1px solid #81a1ff;
-  box-shadow: rgb(69 111 173 / 55%) 0px 6px 7px -4px;
-}
-
-.searchBar input::placeholder {
-  color: #a9a9a9;
-}
 
 .lastTitle {
   padding: 3px 14px;
@@ -427,6 +387,14 @@ export default {
   border-radius: 5px;
   color: #1c5f9b;
   cursor: pointer;
+}
+
+.rooms:focus{
+    box-shadow: rgba(120, 255, 105, 0.9) 0px 0px 0px 4px;
+}
+
+.rooms{
+    transition: .3s;
 }
 
 .fw-300 {
@@ -464,24 +432,5 @@ export default {
   margin: -6px auto 0px !important;
 }
 
-.lastEarthQuake {
-  animation: pulse 2s infinite;
-}
 
-@keyframes pulse {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 3px rgb(255, 255, 255);
-  }
-
-  70% {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
-  }
-
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-  }
-}
 </style>
